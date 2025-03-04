@@ -1,0 +1,33 @@
+<div class="upload-form">
+    <h2>Upload CSV and Create Transactions</h2>
+  
+    <!-- CSV Upload Section -->
+    <input type="file" (change)="onFileChange($event)" accept=".csv">
+    
+    <!-- Request Form Section -->
+    <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()">
+      <div formArrayName="httpRequests">
+        <div *ngFor="let request of requests.controls; let i = index" [formGroupName]="i">
+          <label for="method">HTTP Method</label>
+          <select formControlName="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+  
+          <label for="url">URL</label>
+          <input formControlName="url" type="text" placeholder="Enter URL">
+  
+          <label for="body">Body (JSON)</label>
+          <textarea formControlName="body"></textarea>
+        </div>
+      </div>
+      <button (click)="addHttpRequest()">Add HTTP Request</button>
+      <button type="submit">Submit Transaction</button>
+    </form>
+  
+    <!-- CSV Download Section -->
+    <button *ngIf="downloadLink" (click)="downloadCSV()">Download CSV</button>
+  </div>
+  
