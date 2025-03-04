@@ -38,6 +38,15 @@ export class AppComponent implements OnInit {
     this.requests.push(this.createHttpRequest());
   }
 
+  removeHttpRequest() {
+    const control = this.requests;
+    if (control.length > 0) {
+      control.removeAt(control.length - 1);
+    }
+  }
+
+  
+
   // Method to handle CSV file upload and parse the GUIDs
   onFileChange(event: any) {
     const file = event.target.files[0];
