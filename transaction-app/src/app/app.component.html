@@ -7,7 +7,16 @@
       <div *ngFor="let request of requests.controls; let i = index" [formGroupName]="i">
         <div class="http-request">
           <label for="method-{{i}}">Method</label>
-          <input id="method-{{i}}" formControlName="method" type="text" placeholder="HTTP Method (GET, POST, etc.)">
+          <!--<input id="method-{{i}}" formControlName="method" type="text" placeholder="HTTP Method (GET, POST, etc.)"> -->
+          
+          <select id="method-{{i}}" formControlName="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PUT</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+       
 
           <label for="url-{{i}}">URL</label>
           <input id="url-{{i}}" formControlName="url" type="text" placeholder="Request URL">
@@ -46,7 +55,7 @@
   <div *ngIf="guidList.length > 0">
     <h3>Parsed GUIDs</h3>
     <ul>
-      <li *ngFor="let guid of guidList">{{ guid }}</li>
+      <li>{{ guidList.length }}</li>
     </ul>
   </div>
 </div>

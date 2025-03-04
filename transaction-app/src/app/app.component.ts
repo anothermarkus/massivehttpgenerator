@@ -53,16 +53,16 @@ export class AppComponent implements OnInit {
     if (file) {
       Papa.parse(file, {
         complete: (result) => {
-          // Explicitly type `result.data` as `any[]`
-          const parsedData: any[] = result.data as any[];
+          
+          const rows: string[] = result.data[0] ? result.data[0] as string[] : [];       
+          rows.forEach(item => this.guidList.push(item));
 
-          // Assuming the GUIDs are in the first column of the CSV
-          this.guidList = parsedData.map((row: any[]) => row[0]);
         },
         skipEmptyLines: true, // Ignore empty lines in the CSV
       });
     }
   }
+
 
   // Method to handle form submission and send the data to the API
   onSubmit() {
