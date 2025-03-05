@@ -1,44 +1,71 @@
 <div class="container">
-  <h1>Make Tarrifs Great Again</h1>
-  
+  <h1>Make Tariffs Great Again</h1>
+
   <!-- Form for adding HTTP requests -->
   <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()">
-    <div formArrayName="httpRequests">
-      <div *ngFor="let request of requests.controls; let i = index" [formGroupName]="i">
-        <div class="http-request">
+    <div formArrayName="httpRequests" class="http-request-container">
+      <div *ngFor="let request of requests.controls; let i = index" [formGroupName]="i" class="http-request-box">
+     
+        <div class="row">
           <label for="method-{{i}}">Method</label>
-          <!--<input id="method-{{i}}" formControlName="method" type="text" placeholder="HTTP Method (GET, POST, etc.)"> -->
-          
-          <select id="method-{{i}}" formControlName="method">
+          <select id="method-{{i}}" formControlName="method" style="width: 75px">
             <option value="GET">GET</option>
             <option value="POST">POST</option>
             <option value="PUT">PUT</option>
-            <option value="PATCH">PUT</option>
+            <option value="PATCH">PATCH</option>
             <option value="DELETE">DELETE</option>
           </select>
+        
        
 
           <label for="url-{{i}}">URL</label>
-          <input id="url-{{i}}" formControlName="url" type="text" placeholder="Request URL">
+          <input id="url-{{i}}" formControlName="url" type="text" placeholder="Request URL (e.g., http://myurl.com/{myvariable})">
+        </div>
 
-          <label for="body-{{i}}">Body (Optional)</label>
+      
+        <div class="row">
+        <label for="body-{{i}}">Body (Optional)</label>
+        </div>
+
+        <div class="row">
           <textarea id="body-{{i}}" formControlName="body" placeholder="Request Body"></textarea>
         </div>
+
+       
+          <!-- Output Variable Path and Output Variable Name side by side -->
+          <div class="row">
+          <div class="output-variable-group">
+            <div class="output-variable-container">
+              <label for="outputVariableName-{{i}}">Name</label>
+              <input id="outputVariableName-{{i}}" formControlName="outputVariableName" type="text" placeholder="variable name">
+
+              <label for="outputVariable-{{i}}">Path</label>
+              <input id="outputVariable-{{i}}" formControlName="outputVariable" type="text" placeholder="Path from response">
+            </div>
+          </div>
+          </div>
+        
+        <hr style="text-align:left;margin-left:0">
+  
+        
       </div>
     </div>
 
+    <div class="row">
     <!-- Add new HTTP request -->
     <button type="button" (click)="addHttpRequest()">Add Request</button>
-    
+
     <!-- Remove last HTTP request -->
     <button type="button" (click)="removeHttpRequest()">Remove Last Request</button>
+    </div>
 
-
+    <div class="row">
     <div class="file-upload">
       <!-- File input for CSV upload -->
       <label for="fileInput">Upload GUID CSV</label>
       <input type="file" id="fileInput" (change)="onFileChange($event)" />
     </div>
+  </div>
 
     <!-- Submit button -->
     <button type="submit" [disabled]="!transactionForm.valid || !guidList.length">
@@ -59,4 +86,3 @@
     </ul>
   </div>
 </div>
-
