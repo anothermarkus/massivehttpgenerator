@@ -60,42 +60,37 @@
     </div>
 
     <div class="row">
-    <div class="file-upload">
-      <!-- File input for CSV upload -->
-      <label for="fileInput">Upload GUID CSV</label>
-      <input type="file" id="fileInput" (change)="onFileChange($event)" />
+      <div class="file-upload">
+        <!-- File input for CSV upload -->
+        <label for="fileInput">Upload GUID CSV</label>
+        <input type="file" id="fileInput" (change)="onFileChange($event)" />
+           <!-- Submit button -->
+           <button type="submit" [disabled]="!transactionForm.valid || !guidList.length">
+            Submit 
+          </button>
+      </div>
+     
     </div>
-  </div>
 
-    <!-- Submit button -->
-    <button type="submit" [disabled]="!transactionForm.valid || !guidList.length">
-      Submit Transaction
-    </button>
+
   </form>
 
-  <div *ngIf="downloadLink">
-    <h3>Download Results</h3>
-    <button (click)="downloadCSV()">Download CSV</button>
-  </div>
-
-  <!-- Display list of GUIDs -->
-  <div *ngIf="guidList.length > 0">
-    <h3>Parsed GUIDs</h3>
-    <ul>
-      <li>{{ guidList.length }}</li>
-    </ul>
-  </div>
 
 
+  <mat-card class="example-card">
+    <mat-card-content>
+      <section class="example-section">
+        <label class="example-margin">Progress:</label>
+        <mat-progress-bar
+            class="example-margin"  
+            [value]="successfulCount + failedCount / guidList.length * 100">
+        </mat-progress-bar>
+      </section>
+    </mat-card-content>
+  </mat-card>
 
 </div>
 
-<div class="nextlinewrap">
-  <!-- Display dots as each request is executed -->
-  Progress [
-  <span *ngFor="let progress of requestProgress" class="sameline">
-    {{ progress }}
-  </span>
-  ]
-</div>
+
+
 
