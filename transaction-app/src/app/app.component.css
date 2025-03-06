@@ -116,6 +116,11 @@ button[type="submit"]:disabled {
 
 
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 .example-h2 {
   margin: 10px;
 }
@@ -124,7 +129,11 @@ button[type="submit"]:disabled {
   display: flex;
   align-content: center;
   align-items: center;
+<<<<<<< Updated upstream
   height: 60px;
+=======
+  height: 10px;
+>>>>>>> Stashed changes
 }
 
 .example-margin {
@@ -134,6 +143,13 @@ button[type="submit"]:disabled {
 .example-card {
 
   font-family: Roboto, "Helvetica Neue", sans-serif;
+<<<<<<< Updated upstream
 
 
 }
+=======
+  height: 40px; /* Set a custom height for the card */
+
+}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
