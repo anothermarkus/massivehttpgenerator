@@ -85,4 +85,17 @@
       <li>{{ guidList.length }}</li>
     </ul>
   </div>
+
+
+
 </div>
+
+<div class="nextlinewrap">
+  <!-- Display dots as each request is executed -->
+  Progress [
+  <span *ngFor="let progress of requestProgress" class="sameline">
+    {{ progress }}
+  </span>
+  ]
+</div>
+

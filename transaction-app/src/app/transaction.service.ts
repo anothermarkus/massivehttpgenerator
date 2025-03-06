@@ -3,14 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TransactionService {
   private apiUrl = 'http://localhost:5000/api/transaction'; // .NET backend API endpoint
 
   constructor(private http: HttpClient) {}
 
-  submitTransaction(transactionData: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, transactionData);
+  submitGuidTransaction(guid: string, requestData: any): Observable<any> {
+    // Assuming you send the GUID along with the requestData
+    return this.http.post<any>(`${this.apiUrl}/${guid}`, requestData);
   }
 }

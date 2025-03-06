@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { TransactionService } from './transaction.service'; // Assuming you have a service for API calls
 import * as Papa from 'papaparse'; // Import PapaParse for CSV parsing
+import { from, of } from 'rxjs';
+import { bufferCount, catchError, concatMap, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-root',
@@ -13,6 +16,7 @@ export class AppComponent implements OnInit {
   transactionForm!: FormGroup;
   guidList: string[] = [];
   downloadLink: string | null = null;
+  requestProgress: string[] = []; // To track the progress (dots for each request)
 
   constructor(private fb: FormBuilder, private transactionService: TransactionService) {}
 
@@ -61,25 +65,86 @@ export class AppComponent implements OnInit {
     }
   }
 
-  // Method to handle form submission and send the data to the API
   onSubmit() {
     if (this.transactionForm.valid && this.guidList.length > 0) {
-      const transactionData = {
-        guids: this.guidList,
-        requests: this.transactionForm.value.httpRequests
-      };
+      const requestData = this.transactionForm.value.httpRequests;
+      let successfulCount = 0;
+      let failedCount = 0;
 
-      this.transactionService.submitTransaction(transactionData).subscribe(
-        (response: any) => {
-          // Assuming the response contains a file URL for the CSV download
-          this.downloadLink = response.fileUrl;
-        },
-        (error) => {
-          console.error('Transaction submission failed:', error);
-        }
-      );
+     // Initialize the progress tracker with an empty array of dots
+     this.requestProgress = Array(this.guidList.length).fill('.'); 
+
+
+      // Use bufferCount to send requests in batches of X
+      from(this.guidList)
+        .pipe(
+          bufferCount(10), // Adjust the number (e.g., 10) for batch size if needed
+          mergeMap((guids) =>
+            from(guids).pipe(
+              // For each GUID, call the API and count success/failure
+              mergeMap((guid, index) =>
+                this.transactionService.submitGuidTransaction(guid, requestData).pipe(
+                  map((response) => ({ success: true, guid, index })),
+                  catchError((error) => {
+                    console.error(`Error processing GUID ${guid}:`, error);
+                    return of({ success: false, guid, index });
+                  })
+                )
+              ),
+              // Collect the results
+              tap((result) => {
+                if (result.success) {
+                  successfulCount++;
+                } else {
+                  failedCount++;
+                }
+
+                   // Update progress with a dot (.) for each request
+                   this.requestProgress[result.index] = '.';
+
+              })
+            )
+          ),
+          // Handle all responses and create CSV once completed
+          switchMap(() =>
+            of({ successfulCount, failedCount }).pipe(
+              tap(() => {
+                this.generateCSV(successfulCount, failedCount);
+              })
+            )
+          )
+        )
+        .subscribe({
+          next: () => console.log('Transaction completed.'),
+          error: (err) => console.error('Error in transaction submission:', err),
+        });
     }
   }
+  
+    // Method to generate CSV data
+    generateCSV(successfulCount: number, failedCount: number) {
+      const csvData = [
+        ['GUID', 'Status'],
+        ['Success', successfulCount],
+        ['Failure', failedCount],
+      ];
+
+      // Convert to CSV format
+      const csvContent = csvData.map(row => row.join(',')).join('\n');
+
+      // Trigger file download
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      this.downloadLink = url;
+
+      // Optionally, automatically trigger download for the user
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'transaction_results.csv';
+      a.click();
+    }
+
+
 
   // Method to download the result CSV file
   downloadCSV() {

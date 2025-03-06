@@ -101,5 +101,16 @@ button[type="submit"]:disabled {
   cursor: not-allowed;
 }
 
+.nextlinewrap{
+  display: flex;
+  flex-wrap: wrap;  /* Allow wrapping to the next line */
+  gap: 2px;        /* Optional, adds space between the dots */
+}
+
+.sameline{
+  display: inline-block;  /* Keep the dots on the same line */
+  margin-right: 2px;      /* Optional, adds space between dots */
+}
+
 
 
