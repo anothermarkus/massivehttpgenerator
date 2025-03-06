@@ -37,8 +37,10 @@ button:hover {
   background-color: #45a049;
 }
 
-.file-upload {
-  margin-bottom: 20px;
+.file-upload label,
+.file-upload input,
+.file-upload button {
+  margin-left: 20px;
 }
 
 
@@ -114,3 +116,24 @@ button[type="submit"]:disabled {
 
 
 
+.example-h2 {
+  margin: 10px;
+}
+
+.example-section {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 60px;
+}
+
+.example-margin {
+  margin: 0 10px;
+}
+
+.example-card {
+
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+
+
+}

@@ -17,6 +17,8 @@ export class AppComponent implements OnInit {
   guidList: string[] = [];
   downloadLink: string | null = null;
   requestProgress: string[] = []; // To track the progress (dots for each request)
+  successfulCount = 0;
+  failedCount = 0;
 
   constructor(private fb: FormBuilder, private transactionService: TransactionService) {}
 
@@ -68,8 +70,7 @@ export class AppComponent implements OnInit {
   onSubmit() {
     if (this.transactionForm.valid && this.guidList.length > 0) {
       const requestData = this.transactionForm.value.httpRequests;
-      let successfulCount = 0;
-      let failedCount = 0;
+      
 
      // Initialize the progress tracker with an empty array of dots
      this.requestProgress = Array(this.guidList.length).fill('.'); 
@@ -94,9 +95,9 @@ export class AppComponent implements OnInit {
               // Collect the results
               tap((result) => {
                 if (result.success) {
-                  successfulCount++;
+                  this.successfulCount++;
                 } else {
-                  failedCount++;
+                  this.failedCount++;
                 }
 
                    // Update progress with a dot (.) for each request
@@ -107,9 +108,9 @@ export class AppComponent implements OnInit {
           ),
           // Handle all responses and create CSV once completed
           switchMap(() =>
-            of({ successfulCount, failedCount }).pipe(
+            of({ successfulCount: this.successfulCount, failedCount: this.failedCount }).pipe(
               tap(() => {
-                this.generateCSV(successfulCount, failedCount);
+                this.generateCSV(this.successfulCount, this.failedCount);
               })
             )
           )
