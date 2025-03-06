@@ -4,7 +4,8 @@ Rather than the company spending $5 on a ready built product, rather it makes se
 This tool was supposed to make a huge batch of HTTP calls to fix problems with tarrifs. Only had one day to work on it and it was due yesterday.
 
 
-![image](https://github.com/user-attachments/assets/8b7bcfdc-09d3-4fa2-b290-1eb6e740dd6e)
+![image](https://github.com/user-attachments/assets/5071423e-45f0-4033-afcf-fa12a068c783)
+
 
 
 
