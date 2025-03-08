@@ -36,6 +36,7 @@ export class AppComponent implements OnInit {
     return this.fb.group({
       method: ['', Validators.required],
       url: ['', Validators.required],
+      headers: [''],
       body: [''],
       outputVariable: [''],  // Path to the output variable (e.g., data.user.id)
       outputVariableName: ['']  // Name for the output variable (e.g., extractedId)
