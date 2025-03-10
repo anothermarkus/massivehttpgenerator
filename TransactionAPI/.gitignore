@@ -1,3 +1,8 @@
 # Ignore bin and obj folders
+#
+# Delete these if they are in the repo
+# git rm -r --cached bin/
+# git rm -r --cached obj/
+# git commit -m "Remove bin and obj folders from the repository"
 bin/
 obj/
