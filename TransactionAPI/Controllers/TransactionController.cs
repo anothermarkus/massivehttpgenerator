@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Net.Http;
 using Newtonsoft.Json;
-using System.IO;
+using System.Text.RegularExpressions;
 
 namespace TransactionAPI.Controllers
 {
@@ -13,84 +13,122 @@ namespace TransactionAPI.Controllers
     public class TransactionController : ControllerBase
     {
         private static readonly HttpClient client = new HttpClient();
+        private static readonly Dictionary<string, Dictionary<string, object>> OutputVariables = new Dictionary<string, Dictionary<string, object>>();
 
-        [HttpPost]
-        public async Task<IActionResult> SubmitTransaction([FromBody] TransactionRequest request)
+        [HttpPost("{guid}")]
+        public async Task<IActionResult> SubmitTransaction(string guid, [FromBody] List<HttpRequestDetails> httpRequests)
         {
-            // Sample implementation: Process each GUID with its corresponding HTTP requests
-            var results = new List<TransactionResult>();
+            // Store the GUID's output variable mapping
+            if (!OutputVariables.ContainsKey(guid))
+                OutputVariables[guid] = new Dictionary<string, object>();
 
-            foreach (var guid in request.Guids)
+            foreach (var httpRequest in httpRequests)
             {
-                var transactionStatus = true;
-                foreach (var httpRequest in request.HttpRequests)
-                {
-                    try
-                    {
-                        var httpRequestMessage = new HttpRequestMessage(new HttpMethod(httpRequest.Method), httpRequest.Url)
-                        {
-                            Content = new StringContent(httpRequest.Body ?? "")
-                        };
+                // Replace output variable placeholders in URL, headers, and body
+                httpRequest.Url = SubstituteVariables(httpRequest.Url, guid);
+                httpRequest.Body = SubstituteVariables(httpRequest.Body, guid);
+                httpRequest.Headers = SubstituteVariables(httpRequest.Headers, guid);
 
-                        var response = await client.SendAsync(httpRequestMessage);
-                        if (!response.IsSuccessStatusCode)
+                try
+                {
+                    // Create HTTP request message
+                    var requestMessage = new HttpRequestMessage(new HttpMethod(httpRequest.Method), httpRequest.Url)
+                    {
+                        Content = new StringContent(httpRequest.Body ?? "")
+                    };
+
+                    // Add headers if any
+                    if (!string.IsNullOrEmpty(httpRequest.Headers))
+                    {
+                        var headers = JsonConvert.DeserializeObject<Dictionary<string, string>>(httpRequest.Headers);
+                        foreach (var header in headers)
                         {
-                            transactionStatus = false;
-                            break;
+                            requestMessage.Headers.Add(header.Key, header.Value);
                         }
                     }
-                    catch
+
+                    // Send the request
+                    var response = await client.SendAsync(requestMessage);
+
+                    // Check if the response is unsuccessful
+                    if (!response.IsSuccessStatusCode)
                     {
-                        transactionStatus = false;
-                        break;
+                        var errorMessage = $"Request failed with status code: {response.StatusCode}.";
+                        var errorDetails = await response.Content.ReadAsStringAsync();
+                        return StatusCode(500, new { message = errorMessage, details = errorDetails });
+                    }
+
+                    // Process the response to capture the output variable
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var outputVariableValue = GetJsonValue(responseContent, httpRequest.OutputVariable);
+
+                    // Save the output variable value for future substitutions
+                    if (outputVariableValue != null)
+                    {
+                        OutputVariables[guid][httpRequest.OutputVariableName] = outputVariableValue;
                     }
                 }
-
-                results.Add(new TransactionResult
+                catch (Exception ex)
                 {
-                    Guid = guid,
-                    Status = transactionStatus
-                });
-            }
-
-            // Generate a CSV file
-            var csvFilePath = GenerateCsv(results);
-
-            return Ok(new { fileUrl = csvFilePath });
-        }
-
-        private string GenerateCsv(List<TransactionResult> results)
-        {
-            var csvPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "transaction_report.csv");
-            using (var writer = new StreamWriter(csvPath))
-            {
-                writer.WriteLine("GUID,Status");
-                foreach (var result in results)
-                {
-                    writer.WriteLine($"{result.Guid},{result.Status}");
+                    // Return HTTP 500 with the exception message if the request fails
+                    return StatusCode(500, new { message = "Request failed due to an exception.", error = ex.Message });
                 }
             }
 
-            return "/transaction_report.csv";
+            // If all requests succeed, return an OK response
+            return Ok(new { message = "Transaction completed successfully" });
         }
-    }
 
-    public class TransactionRequest
-    {
-        public List<string> Guids { get; set; }
-        public List<HttpRequestDetails> HttpRequests { get; set; }
+        private string SubstituteVariables(string input, string guid)
+        {
+            // Substitute any placeholder in the format {TOKEN} with actual values from the output variables
+            if (string.IsNullOrEmpty(input)) return input;
+
+            var pattern = new Regex(@"{(.*?)}");
+            var matches = pattern.Matches(input);
+
+            foreach (Match match in matches)
+            {
+                var variableName = match.Groups[1].Value;
+                if (OutputVariables.ContainsKey(guid) && OutputVariables[guid].ContainsKey(variableName))
+                {
+                    var replacement = OutputVariables[guid][variableName].ToString();
+                    input = input.Replace(match.Value, replacement);
+                }
+            }
+
+            return input;
+        }
+
+        private object GetJsonValue(string json, string jsonPath)
+        {
+            // Use JsonPath to extract the value
+            var token = JsonConvert.DeserializeObject<dynamic>(json);
+            var pathParts = jsonPath.Split('.');
+
+            foreach (var part in pathParts)
+            {
+                if (token[part] != null)
+                {
+                    token = token[part];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            return token.ToString();
+        }
     }
 
     public class HttpRequestDetails
     {
         public string Method { get; set; }
         public string Url { get; set; }
+        public string Headers { get; set; } // Headers in JSON string format
         public string Body { get; set; }
-    }
-
-    public class TransactionResult
-    {
-        public string Guid { get; set; }
-        public bool Status { get; set; }
+        public string OutputVariable { get; set; }  // The JSON path to the value
+        public string OutputVariableName { get; set; } // The name to use for substitution
     }
 }
